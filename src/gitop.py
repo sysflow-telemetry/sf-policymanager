@@ -19,18 +19,13 @@
 # limitations under the License.
 
 #
-# Watches for updates to a github policy repo, and pushes them either to a 
+# Watches for updates to a github policy repo, and pushes them either to a
 # configmap (k8s) or to a local policy directory.
 #
 # Instructions:
 #      ./gitop.py -h for help and command line options
 #
 
-from github import Github
-import pygit2
-import glob
-import re
-import os
 import sys
 import logging, argparse
 from policyprocessor import PolicyProcessor
@@ -38,22 +33,29 @@ from executor import PeriodicExecutor
 
 HEALTH = logging.CRITICAL + 10
 
+
 def run_tests(args):
     return True
 
+
 def install(args):
     policyProcessor = PolicyProcessor(args)
-    latestGit = policyProcessor.getLatestGitTags()    
+    latestGit = policyProcessor.getLatestGitTags()
     tup = policyProcessor.policyExists()
     if tup[0]:
         tags = policyProcessor.getConfigTags(tup)
         if not policyProcessor.validateTags(tags) or not policyProcessor.tagsUpToDate(tags, latestGit):
             policyProcessor.updatePolicies(latestGit, tup)
         else:
-            logging.info("Tags: {0} SHA: {1} match github Tags: {2}, SHA: {1}".format(tags[0][0], tags[0][1], latestGit[0], latestGit[1]))
-            logging.info("No configmap update required!")
+            logging.info(
+                'Tags: {0} SHA: {1} match github Tags: {2}, SHA: {1}'.format(
+                    tags[0][0], tags[0][1], latestGit[0], latestGit[1]
+                )
+            )
+            logging.info('No configmap update required!')
     else:
-        policyProcessor.updatePolicies(latestGit, tup)    
+        policyProcessor.updatePolicies(latestGit, tup)
+
 
 def get_runner(installtype):
     """
@@ -66,6 +68,7 @@ def get_runner(installtype):
         return install
     raise argparse.ArgumentTypeError('Unknown install type.')
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -76,40 +79,63 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+
 if __name__ == '__main__':
     # setup logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s]\t%(message)s')
     logging.addLevelName(level=HEALTH, levelName='HEALTH')
     logging.info('Read configuration from \'%s\'; logging to \'%s\'' % ('stdin', 'stdout'))
-     # set command line args
-    parser = argparse.ArgumentParser(description='gitop: monitors policy files in github, and updates kubernetes policy configmap on updates.')
-    parser.add_argument('--installtype', help='type of installation: either local (local file)  or k8s (configmap)', default='k8s', choices=['local', 'k8s'])
-    parser.add_argument('--policiesdir', help='location of policy files to be written in local mode', default='/mnt/policies')
+    # set command line args
+    parser = argparse.ArgumentParser(
+        description='gitop: monitors policy files in github, and updates kubernetes policy configmap on updates.'
+    )
+    parser.add_argument(
+        '--installtype',
+        help='type of installation: either local (local file)  or k8s (configmap)',
+        default='k8s',
+        choices=['local', 'k8s'],
+    )
+    parser.add_argument(
+        '--policiesdir', help='location of policy files to be written in local mode', default='/mnt/policies'
+    )
     parser.add_argument('--gitapiurl', help='github restapi URL for monitoring.', default='https://github.com/v3/api')
     parser.add_argument('--basereponame', help='name of the git repo, minus the environment type', default=None)
-    parser.add_argument('--basegithubrepourl', help='URL of the git repo, minus the environment type, and the .git suffix (please use https URL)', default=None)
-    parser.add_argument('--envtype', help='Environment label for the deployment. This enables user to deploy different repos to different environments (e.g., dev, prd)', default=None)
-   # parser.add_argument('--usetags', help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit', type=str2bool, nargs='?', const=True, default=True)
-    parser.add_argument('--usetags', help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit', action="store_true")
-    parser.add_argument('--accesstoken', help='github user access token.  User should only have read rights on the repo for best security', default=None)
+    parser.add_argument(
+        '--basegithubrepourl',
+        help='URL of the git repo, minus the environment type, and the .git suffix (please use https URL)',
+        default=None,
+    )
+    parser.add_argument(
+        '--envtype',
+        help='Environment label for the deployment. This enables user to deploy different repos to different environments (e.g., dev, prd)',
+        default=None,
+    )
+    # parser.add_argument('--usetags', help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit', type=str2bool, nargs='?', const=True, default=True)
+    parser.add_argument(
+        '--usetags',
+        help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit',
+        action='store_true',
+    )
+    parser.add_argument(
+        '--accesstoken',
+        help='github user access token.  User should only have read rights on the repo for best security',
+        default=None,
+    )
     parser.add_argument('--scaninterval', help='interval between github scans', type=float, default=60)
 
     # parse args and configuration
     args = parser.parse_args()
-    
+
     try:
-      if run_tests(args):
-          logging.log(level=HEALTH, msg='Health checks: passed')
-          exporter = PeriodicExecutor(args.scaninterval*60, get_runner(args.installtype) , [args])
-          exporter.run()
-      else:
-          logging.log(level=HEALTH, msg='Health checks: failed')
+        if run_tests(args):
+            logging.log(level=HEALTH, msg='Health checks: passed')
+            exporter = PeriodicExecutor(args.scaninterval * 60, get_runner(args.installtype), [args])
+            exporter.run()
+        else:
+            logging.log(level=HEALTH, msg='Health checks: failed')
     except KeyboardInterrupt:
         sys.exit(0)
     except:
         logging.exception('Error while executing gitoperator')
     else:
-        sys.exit(0)   
-
-
-
+        sys.exit(0)

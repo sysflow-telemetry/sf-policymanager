@@ -23,10 +23,10 @@ import pygit2
 import glob
 import re
 import os
-import sys
 import logging
 import shutil
 from kubecontroller import KubeController
+
 
 def get_secret(secret_name):
     """extract secret from vault, if using a vault"""
@@ -41,31 +41,29 @@ def get_secret(secret_name):
 
 
 class PolicyProcessor:
-
     def __init__(self, args):
         self.policiesDir = args.policiesdir
         self.gitURL = args.gitapiurl
         self.baseRepoName = args.basereponame
         self.baseGitRepoURL = args.basegithubrepourl
         self.envType = args.envtype
-        self.gitDir = "policies"
+        self.gitDir = 'policies'
         self.tagsEnabled = args.usetags
         self.accessToken = get_secret('github_access_token') if not args.accesstoken else args.accesstoken
-        self.localInstall = (args.installtype == 'local')
+        self.localInstall = args.installtype == 'local'
         self.kubeController = KubeController(self.gitDir)
 
     def policyExistsLocal(self):
-        files = glob.glob(self.policiesDir + "/*.yaml") # list of all .yaml files in a directory
+        files = glob.glob(self.policiesDir + "/*.yaml")  # list of all .yaml files in a directory
         logging.debug(files)
         return (len(files) > 0, None)
 
     def policyExistsConfigMap(self):
         cm = self.kubeController.getPolicyConfigMap()
-        logging.info("Received config map ")
+        logging.info('Received config map ')
         if cm.data:
             return (True, cm)
         return (False, None)
-
 
     def policyExists(self):
         if self.localInstall:
@@ -76,15 +74,15 @@ class PolicyProcessor:
         cm = tup[1]
         tags = []
         for key, value in cm.data.items():
-            logging.info("Checking configmap policy {0} for tags.".format(key))
+            logging.info('Checking configmap policy {0} for tags.'.format(key))
             for line in value.splitlines():
                 firstLine = line.strip()
-                logging.info("Searching {0} for version tag {1}".format(key, firstLine))
-                m = re.search("^#\[([\w\.]*)\]\[([\w\.]+)\]$", firstLine)
+                logging.info('Searching {0} for version tag {1}'.format(key, firstLine))
+                m = re.search('^#\[([\w\.]*)\]\[([\w\.]+)\]$', firstLine)
                 if m:
                     grps = m.groups()
                     if grps and len(grps) == 2:
-                        logging.info("Found tags: {0}".format(grps))
+                        logging.info('Found tags: {0}'.format(grps))
                         tags.append(grps)
                 break
         return tags
@@ -95,17 +93,17 @@ class PolicyProcessor:
         return self.getConfigTagsK8sConfigMap(tup)
 
     def getConfigTagsLocal(self):
-        files = glob.glob(self.policiesDir + "/*.yaml") # list of all .yaml files in a directory
+        files = glob.glob(self.policiesDir + '/*.yaml')  # list of all .yaml files in a directory
         tags = []
         for fileName in files:
             with open(fileName, 'r') as f:
                 firstLine = f.readline().strip()
-                logging.debug("Searching {0} for version tag {1}".format(fileName, firstLine))
-                m = re.search("^#\[([\w\.]*)\]\[([\w\.]+)\]$", firstLine)
+                logging.debug('Searching {0} for version tag {1}'.format(fileName, firstLine))
+                m = re.search('^#\[([\w\.]*)\]\[([\w\.]+)\]$', firstLine)
                 if m:
                     grps = m.groups()
                     if grps and len(grps) == 2:
-                        logging.debug("Found tags: {0}".format(grps))
+                        logging.debug('Found tags: {0}'.format(grps))
                         tags.append(grps)
 
         return tags
@@ -113,13 +111,13 @@ class PolicyProcessor:
     def validateTags(self, tags):
         numTags = len(tags)
         if numTags == 0:
-            logging.info("No tags in existing policies. Pulling down latest policies")
-            return False            
+            logging.info('No tags in existing policies. Pulling down latest policies')
+            return False
         tag = tags[0][0]
         sha = tags[0][1]
         for t in tags:
             if tag != t[0] or sha != t[1]:
-                logging.info("Tags across all .yaml files don't match. Pulling down latest policies")
+                logging.info('Tags across all .yaml files don\'t match. Pulling down latest policies')
                 logging.debug(tags)
                 return False
         return True
@@ -127,15 +125,17 @@ class PolicyProcessor:
     def tagsUpToDate(self, tags, latestGit):
         tag = tags[0][0]
         sha = tags[0][1]
-        return (tag == latestGit[0] and sha == latestGit[1])
+        return tag == latestGit[0] and sha == latestGit[1]
 
     def writeLocal(self, tags, repo):
         tagName = tags[0]
-        files = glob.glob(self.gitDir + "/policies/*.yaml") # list of all .yaml files in a directory
+        files = glob.glob(self.gitDir + '/policies/*.yaml')  # list of all .yaml files in a directory
         for fileName in files:
-            with open(fileName, 'r') as original: data = original.read()
-            with open(self.policiesDir + "/" + os.path.basename(fileName), 'w') as modified: modified.write("#[{0}][{1}]\n".format(tagName, repo.head.target) + data)
-    
+            with open(fileName, 'r') as original:
+                data = original.read()
+            with open(self.policiesDir + '/' + os.path.basename(fileName), 'w') as modified:
+                modified.write('#[{0}][{1}]\n'.format(tagName, repo.head.target) + data)
+
     def writeConfigMap(self, tags, repo, policyExists):
         self.kubeController.writeConfigMap(tags, repo, policyExists)
 
@@ -143,19 +143,19 @@ class PolicyProcessor:
         policyExists = tup[0]
         tagName = tags[0]
         sha = tags[1]
-        gitRepo = self.baseGitRepoURL + self.envType + ".git"
-        logging.info("Trying to Clone repo: {0}, with Tag: {1}, SHA {2}".format(gitRepo, tagName, sha))
+        gitRepo = self.baseGitRepoURL + self.envType + '.git'
+        logging.info('Trying to Clone repo: {0}, with Tag: {1}, SHA {2}'.format(gitRepo, tagName, sha))
         authMethod = 'x-access-token'
         callbacks = pygit2.RemoteCallbacks(pygit2.UserPass(authMethod, self.accessToken))
         if os.path.exists(self.gitDir) and os.path.isdir(self.gitDir):
             shutil.rmtree(self.gitDir)
         repo = pygit2.clone_repository(gitRepo, self.gitDir, callbacks=callbacks)
         if tagName != '':
-            remote = repo.remotes["origin"]
+            remote = repo.remotes['origin']
             remote.fetch(callbacks=callbacks)
             ref = repo.lookup_reference('refs/tags/' + tagName)
             repo.checkout(ref)
-        logging.info("Cloned repository and checked out  Tag: {0}, Sha: {1}".format(tagName, repo.head.target))
+        logging.info('Cloned repository and checked out  Tag: {0}, Sha: {1}'.format(tagName, repo.head.target))
         if self.localInstall:
             self.writeLocal(tags, repo)
         else:
@@ -166,25 +166,33 @@ class PolicyProcessor:
     def getLatestGitTags(self):
         # Github Enterprise with custom hostname
         repoName = self.baseRepoName + self.envType
-        logging.info("Get Latest Git Tag, Git URL: {0}, Repo Name: {1}, Env Type: {2}".format(self.gitURL, repoName, self.envType))
-        #logging.info("Access Token: {0}".format(self.accessToken))
+        logging.info(
+            'Get Latest Git Tag, Git URL: {0}, Repo Name: {1}, Env Type: {2}'.format(
+                self.gitURL, repoName, self.envType
+            )
+        )
+        # logging.info('Access Token: {0}'.format(self.accessToken))
         g = Github(base_url=self.gitURL, login_or_token=self.accessToken)
         repo = g.get_repo(repoName)
         logging.debug(repo.git_url)
         tags = repo.get_tags()
-        tagName =""
+        tagName = ''
         numTags = 0
         for tag in tags:
-            logging.debug("Name: {0}, Commmit: {1}".format(tag.name, tag.commit.sha))
+            logging.debug('Name: {0}, Commmit: {1}'.format(tag.name, tag.commit.sha))
             numTags += 1
-        
+
         if self.tagsEnabled and numTags > 0:
             return (tags[0].name, tags[0].commit.sha)
 
         numCommits = repo.get_commits().totalCount
-        if numCommits > 0: 
+        if numCommits > 0:
             latestCommit = repo.get_commits()[0]
             if self.tagsEnabled:
-                logging.warn("Tags enabled, but no tag available in repo {0}.  Returning latest commit. Latest commit: {1}".format(repo.git_url, latestCommit.sha))
+                logging.warn(
+                    'Tags enabled, but no tag available in repo {0}.  Returning latest commit. Latest commit: {1}'.format(
+                        repo.git_url, latestCommit.sha
+                    )
+                )
             return ('', latestCommit.sha)
         return ('', '')

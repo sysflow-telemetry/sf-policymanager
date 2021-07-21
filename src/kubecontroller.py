@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 
+#
 # Copyright (C) 2021 IBM Corporation.
 #
 # Authors:
@@ -20,12 +20,11 @@
 
 import kubernetes.client
 from kubernetes.client.rest import ApiException
-from pprint import pprint
 import logging
 import glob
 import os
 
-CONFIGMAP_NAME='sysflow-policy-config'
+CONFIGMAP_NAME = 'sysflow-policy-config'
 NAMESPACE = 'sysflow'
 
 
@@ -37,13 +36,14 @@ def get_bearer_token():
     except FileNotFoundError:
         logging.error('Secret not found in /var/run/secrets/kubernetes.io/serviceaccount/token')
     except IOError as e:
-        logging.error('Caught exception while reading secret /var/run/secrets/kubernetes.io/serviceaccount/token: %s' % e)
+        logging.error(
+            'Caught exception while reading secret /var/run/secrets/kubernetes.io/serviceaccount/token: %s' % e
+        )
+
 
 class KubeController:
-
     def __init__(self, gitDir):
         self.gitDir = gitDir
-
 
     def getKubeConfig(self):
         # Configure API key authorization: BearerToken
@@ -51,7 +51,7 @@ class KubeController:
         configuration.api_key['authorization'] = get_bearer_token()
         configuration.api_key_prefix['authorization'] = 'Bearer'
         configuration.host = 'https://kubernetes.default.svc'
-        configuration.verify_ssl=False
+        configuration.verify_ssl = False
         return configuration
 
     def getPolicyConfigMap(self):
@@ -59,13 +59,13 @@ class KubeController:
         with kubernetes.client.ApiClient(configuration) as client:
             # Create an instance of the API class
             instance = kubernetes.client.CoreV1Api(client)
-            name = CONFIGMAP_NAME # str | name of the ConfigMap
-            namespace = NAMESPACE # str | object name and auth scope, such as for teams and projects
+            name = CONFIGMAP_NAME  # str | name of the ConfigMap
+            namespace = NAMESPACE  # str | object name and auth scope, such as for teams and projects
             response = None
             try:
                 logging.info("Retrieving configmap {0} in {1}".format(name, namespace))
                 response = instance.read_namespaced_config_map(name, namespace)
-                #pprint(response)
+                # pprint(response)
             except ApiException as e:
                 logging.error("Exception when calling CoreV1Api->read_namespaced_config_map: %s" % e)
             return response
@@ -74,24 +74,24 @@ class KubeController:
         configuration = self.getKubeConfig()
         with kubernetes.client.ApiClient(configuration) as client:
             instance = kubernetes.client.CoreV1Api(client)
-            namespace = NAMESPACE # str | object name and auth scope, such as for teams and projects
+            namespace = NAMESPACE  # str | object name and auth scope, such as for teams and projects
             try:
                 response = instance.create_namespaced_config_map(namespace, body)
-                #pprint(response)
+                # pprint(response)
             except ApiException as e:
-               logging.error("Exception when calling CoreV1Api->create_namespaced_config_map: %s" % e)
+                logging.error("Exception when calling CoreV1Api->create_namespaced_config_map: %s" % e)
 
     def updatePolicyConfigMap(self, body):
         configuration = self.getKubeConfig()
         with kubernetes.client.ApiClient(configuration) as client:
             instance = kubernetes.client.CoreV1Api(client)
-            namespace = NAMESPACE # str | object name and auth scope, such as for teams and projects
-            name = CONFIGMAP_NAME # str | name of the ConfigMap
+            namespace = NAMESPACE  # str | object name and auth scope, such as for teams and projects
+            name = CONFIGMAP_NAME  # str | name of the ConfigMap
             try:
                 response = instance.replace_namespaced_config_map(name, namespace, body)
-                #pprint(response)
+                # pprint(response)
             except ApiException as e:
-               logging.error("Exception when calling CoreV1Api->replace_namespaced_config_map: %s" % e)
+                logging.error("Exception when calling CoreV1Api->replace_namespaced_config_map: %s" % e)
 
     def populateBody(self, body):
         body.api_version = 'v1'
@@ -101,15 +101,15 @@ class KubeController:
         md['namespace'] = NAMESPACE
         body.metadata = md
 
-
     def writeConfigMap(self, tags, repo, policyExists):
         tagName = tags[0]
-        files = glob.glob(self.gitDir + "/policies/*.yaml") # list of all .yaml files in a directory
+        files = glob.glob(self.gitDir + "/policies/*.yaml")  # list of all .yaml files in a directory
         body = kubernetes.client.V1ConfigMap()
         cm = {}
         for fileName in files:
             data = ""
-            with open(fileName, 'r') as original: data = original.read()
+            with open(fileName, 'r') as original:
+                data = original.read()
             data = "#[{0}][{1}]\n".format(tagName, repo.head.target) + data
             cm[os.path.basename(fileName)] = data
         if len(cm) > 0:

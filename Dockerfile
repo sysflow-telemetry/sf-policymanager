@@ -23,22 +23,21 @@ ARG VERSION=dev
 ARG RELEASE=dev
 
 # Update Labels
-LABEL "name"="SysFlow Policy GIT operator"
+LABEL "name"="SysFlow Policy Manager operator"
 LABEL "vendor"="SysFlow"
 LABEL "maintainer"="The SysFlow team"
 LABEL "documentation"="https://sysflow.readthedocs.io"
 LABEL "version"="${VERSION}"
 LABEL "release"="${RELEASE}"
-LABEL "summary"="The SysFlow Policy GIT operator deploys processor policy updates to k8s clusters as a configmap."
-LABEL "description"="The SysFlow Policy GIT operator deploys processor policy updates to k8s clusters as a configmap."
-LABEL "io.k8s.display-name"="SysFlow Policy GIT Operator"
-LABEL "io.k8s.description"="The SysFlow Policy GIT operator deploys processor policy updates to k8s clusters as a configmap."
+LABEL "summary"="The SysFlow Policy Manager operator deploys processor policy updates to k8s clusters as a configmap."
+LABEL "description"="The SysFlow Policy Manager operator deploys processor policy updates to k8s clusters as a configmap."
+LABEL "io.k8s.display-name"="SysFlow Policy Manager Operator"
+LABEL "io.k8s.description"="The SysFlow Policy Manager operator deploys processor policy updates to k8s clusters as a configmap."
 
 # Update License
 RUN mkdir /licenses
 COPY ./LICENSE.md /licenses/
 
-# Install Python environment
 # Install Python environment
 RUN microdnf install -y --disableplugin=subscription-manager \
         python38 && \
@@ -50,15 +49,10 @@ RUN microdnf install -y --disableplugin=subscription-manager \
 WORKDIR /usr/local/sysflow/gitop
 
 # sources
-COPY src/executor.py .
-COPY src/gitop.py .
-COPY src/policyprocessor.py .
-COPY src/kubecontroller.py .
+COPY src/* .
 
 # dependencies
-COPY requirements.txt /tmp/build/
-RUN cd /tmp/build && python3 -m pip install -r requirements.txt  && \
-    rm -r /tmp/build
+RUN python3 -m pip install -r requirements.txt
 
 # environment variables
 ENV TZ=UTC
@@ -98,7 +92,6 @@ ENV POD_UUID=$poduuid
 
 ARG clusterid=
 ENV CLUSTER_ID=$clusterid
-
 
 # entrypoint
 CMD python3 ./gitop.py --installtype=${INSTALL_TYPE} --gitapiurl=${GIT_API_URL}  \
