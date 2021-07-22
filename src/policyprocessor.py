@@ -55,12 +55,12 @@ def get_secret(secret_name):
 
 def get_git_path(url):
     if re.match(urlRegex, url) is None:
-        logging.error("Github URL {0} is not a valid URL, exiting..".format(url))
+        logging.error('Github URL {0} is not a valid URL, exiting..'.format(url))
         os._exit(1)
 
     u = urlparse(url)
     if u.path is None or len(u.path) == 0:
-        logging.error("No path specified in github URL {0}".format(url))
+        logging.error('No path specified in github URL {0}'.format(url))
         os._exit(1)
 
     gitProj = os.path.splitext(u.path)
@@ -70,7 +70,7 @@ def get_git_path(url):
             proj = proj[1:]
         return proj
     else:
-        logging.error("Unable to extract path from github URL {0}".format(url))
+        logging.error('Unable to extract path from github URL {0}'.format(url))
         os._exit(1)
     return ""
 
@@ -94,7 +94,6 @@ class PolicyProcessor:
 
     def policyExistsConfigMap(self):
         cm = self.kubeController.getPolicyConfigMap()
-        logging.info('Received config map ')
         if cm is not None and cm.data:
             return (True, cm)
         return (False, None)

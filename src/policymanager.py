@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # parse args and configuration
     args = parser.parse_args()
     logging.info(
-        "Running policymanager with install type {0}, gitapiurl {1}, githubrepourl {2}, and usetags {3}".format(
+        'Running policymanager with install type {0}, gitapiurl {1}, githubrepourl {2}, and usetags {3}'.format(
             args.installtype, args.gitapiurl, args.githubrepourl, args.usetags
         )
     )
@@ -134,6 +134,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.exit(0)
     except:
-        logging.exception('Error while executing gitoperator')
+        logging.exception('Error while executing policymanager')
     else:
         sys.exit(0)
