@@ -46,10 +46,10 @@ RUN microdnf install -y --disableplugin=subscription-manager \
     mkdir -p /tmp/build/
 
 # working directory
-WORKDIR /usr/local/sysflow/gitop
+WORKDIR /usr/local/sysflow/policymanager
 
 # sources
-COPY src/* .
+COPY src/* ./
 
 # dependencies
 RUN python3 -m pip install -r requirements.txt
@@ -63,7 +63,7 @@ ENV INSTALL_TYPE=$installtype
 ARG gitapiurl=
 ENV GIT_API_URL=https://github.com/v3/api
 
-ARG interval=1
+ARG interval=60
 ENV INTERVAL=$interval
 
 #ARG usetags=False
@@ -94,10 +94,8 @@ ARG clusterid=
 ENV CLUSTER_ID=$clusterid
 
 # entrypoint
-CMD python3 ./gitop.py --installtype=${INSTALL_TYPE} --gitapiurl=${GIT_API_URL}  \
-                       --basereponame=${BASE_REPO_NAME} \
-                       --basegithubrepourl=${BASE_GIT_REPO_URL} \
-                       --envtype=${ENV_TYPE} \
+CMD python3 ./policymanager.py --installtype=${INSTALL_TYPE} --gitapiurl=${GIT_API_URL}  \
+                       --githubrepourl=${GIT_REPO_URL} \
                        --scaninterval=${INTERVAL} \
                        ${USE_TAGS:+--usetags} \
                        ${ACCESS_TOKEN:+--accesstoken} ${ACCESS_TOKEN}

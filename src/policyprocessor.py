@@ -25,7 +25,18 @@ import re
 import os
 import logging
 import shutil
+from urllib.parse import urlparse
 from kubecontroller import KubeController
+import re
+
+
+urlRegex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 
 def get_secret(secret_name):
@@ -39,14 +50,35 @@ def get_secret(secret_name):
     except IOError:
         logging.error('Caught exception while reading secret \'%s\'', secret_name)
 
+def get_git_path(url):
+    if re.match(urlRegex, url) is None:
+        logging.error("Github URL {0} is not a valid URL, exiting..".format(url))
+        os._exit(1)
+
+    u = urlparse(url)
+    if u.path is None or len(u.path) == 0:
+        logging.error("No path specified in github URL {0}".format(url))
+        os._exit(1)
+    
+    gitProj = os.path.splitext(u.path)
+    if len(gitProj) > 0:
+        proj = gitProj[0]
+        if proj.startswith('/') and len(proj) > 1:
+            proj = proj[1:]
+        return proj 
+    else:
+        logging.error("Unable to extract path from github URL {0}".format(url))
+        os._exit(1)
+    return ""
+
+
 
 class PolicyProcessor:
     def __init__(self, args):
         self.policiesDir = args.policiesdir
         self.gitURL = args.gitapiurl
-        self.baseRepoName = args.basereponame
-        self.baseGitRepoURL = args.basegithubrepourl
-        self.envType = args.envtype
+        self.gitRepoURL = args.githubrepourl
+        self.gitRepoName = get_git_path(args.githubrepourl)
         self.gitDir = 'policies'
         self.tagsEnabled = args.usetags
         self.accessToken = get_secret('github_access_token') if not args.accesstoken else args.accesstoken
@@ -61,7 +93,7 @@ class PolicyProcessor:
     def policyExistsConfigMap(self):
         cm = self.kubeController.getPolicyConfigMap()
         logging.info('Received config map ')
-        if cm.data:
+        if cm is not None and cm.data:
             return (True, cm)
         return (False, None)
 
@@ -143,7 +175,7 @@ class PolicyProcessor:
         policyExists = tup[0]
         tagName = tags[0]
         sha = tags[1]
-        gitRepo = self.baseGitRepoURL + self.envType + '.git'
+        gitRepo = self.gitRepoURL
         logging.info('Trying to Clone repo: {0}, with Tag: {1}, SHA {2}'.format(gitRepo, tagName, sha))
         authMethod = 'x-access-token'
         callbacks = pygit2.RemoteCallbacks(pygit2.UserPass(authMethod, self.accessToken))
@@ -165,10 +197,10 @@ class PolicyProcessor:
 
     def getLatestGitTags(self):
         # Github Enterprise with custom hostname
-        repoName = self.baseRepoName + self.envType
+        repoName = self.gitRepoName 
         logging.info(
-            'Get Latest Git Tag, Git URL: {0}, Repo Name: {1}, Env Type: {2}'.format(
-                self.gitURL, repoName, self.envType
+            'Get Latest Git Tag, Git URL: {0}, Repo Name: {1}'.format(
+                self.gitURL, repoName
             )
         )
         # logging.info('Access Token: {0}'.format(self.accessToken))

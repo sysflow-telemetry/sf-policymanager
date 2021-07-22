@@ -23,7 +23,7 @@
 # configmap (k8s) or to a local policy directory.
 #
 # Instructions:
-#      ./gitop.py -h for help and command line options
+#      ./policymanager.py -h for help and command line options
 #
 
 import sys
@@ -99,18 +99,11 @@ if __name__ == '__main__':
         '--policiesdir', help='location of policy files to be written in local mode', default='/mnt/policies'
     )
     parser.add_argument('--gitapiurl', help='github restapi URL for monitoring.', default='https://github.com/v3/api')
-    parser.add_argument('--basereponame', help='name of the git repo, minus the environment type', default=None)
     parser.add_argument(
-        '--basegithubrepourl',
-        help='URL of the git repo, minus the environment type, and the .git suffix (please use https URL)',
+        '--githubrepourl',
+        help='URL of the git repo to monitor (please use https URL with .git suffix)',
         default=None,
     )
-    parser.add_argument(
-        '--envtype',
-        help='Environment label for the deployment. This enables user to deploy different repos to different environments (e.g., dev, prd)',
-        default=None,
-    )
-    # parser.add_argument('--usetags', help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit', type=str2bool, nargs='?', const=True, default=True)
     parser.add_argument(
         '--usetags',
         help='when present, gitoperator will only reload when it sees a new tag in the rep. Otherwise, it reloads on a new commit',
@@ -121,10 +114,11 @@ if __name__ == '__main__':
         help='github user access token.  User should only have read rights on the repo for best security',
         default=None,
     )
-    parser.add_argument('--scaninterval', help='interval between github scans', type=float, default=60)
+    parser.add_argument('--scaninterval', help='interval between github scans in minutes', type=float, default=60)
 
     # parse args and configuration
     args = parser.parse_args()
+    logging.info("Running policymanager with install type {0}, gitapiurl {1}, githubrepourl {2}, and usetags {3}".format(args.installtype, args.gitapiurl, args.githubrepourl, args.usetags))
 
     try:
         if run_tests(args):
