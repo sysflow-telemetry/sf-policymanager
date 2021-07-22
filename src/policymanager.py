@@ -118,7 +118,11 @@ if __name__ == '__main__':
 
     # parse args and configuration
     args = parser.parse_args()
-    logging.info("Running policymanager with install type {0}, gitapiurl {1}, githubrepourl {2}, and usetags {3}".format(args.installtype, args.gitapiurl, args.githubrepourl, args.usetags))
+    logging.info(
+        "Running policymanager with install type {0}, gitapiurl {1}, githubrepourl {2}, and usetags {3}".format(
+            args.installtype, args.gitapiurl, args.githubrepourl, args.usetags
+        )
+    )
 
     try:
         if run_tests(args):

@@ -31,12 +31,14 @@ import re
 
 
 urlRegex = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    r'^(?:http|ftp)s?://'  # http:// or https://
+    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+    r'localhost|'  # localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+    r'(?::\d+)?'  # optional port
+    r'(?:/?|[/?]\S+)$',
+    re.IGNORECASE,
+)
 
 
 def get_secret(secret_name):
@@ -50,6 +52,7 @@ def get_secret(secret_name):
     except IOError:
         logging.error('Caught exception while reading secret \'%s\'', secret_name)
 
+
 def get_git_path(url):
     if re.match(urlRegex, url) is None:
         logging.error("Github URL {0} is not a valid URL, exiting..".format(url))
@@ -59,18 +62,17 @@ def get_git_path(url):
     if u.path is None or len(u.path) == 0:
         logging.error("No path specified in github URL {0}".format(url))
         os._exit(1)
-    
+
     gitProj = os.path.splitext(u.path)
     if len(gitProj) > 0:
         proj = gitProj[0]
         if proj.startswith('/') and len(proj) > 1:
             proj = proj[1:]
-        return proj 
+        return proj
     else:
         logging.error("Unable to extract path from github URL {0}".format(url))
         os._exit(1)
     return ""
-
 
 
 class PolicyProcessor:
@@ -197,12 +199,8 @@ class PolicyProcessor:
 
     def getLatestGitTags(self):
         # Github Enterprise with custom hostname
-        repoName = self.gitRepoName 
-        logging.info(
-            'Get Latest Git Tag, Git URL: {0}, Repo Name: {1}'.format(
-                self.gitURL, repoName
-            )
-        )
+        repoName = self.gitRepoName
+        logging.info('Get Latest Git Tag, Git URL: {0}, Repo Name: {1}'.format(self.gitURL, repoName))
         # logging.info('Access Token: {0}'.format(self.accessToken))
         g = Github(base_url=self.gitURL, login_or_token=self.accessToken)
         repo = g.get_repo(repoName)
