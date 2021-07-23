@@ -31,9 +31,7 @@ image:
 
 sfgitops:
   gitapiurl: ""
-  basereponame: ""
-  baserepourl: ""
-  envtype: ""
+  gitrepourl: ""
   usetags: 1
   interval: 1
 

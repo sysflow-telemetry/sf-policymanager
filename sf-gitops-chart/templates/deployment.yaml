@@ -54,12 +54,8 @@ spec:
             value: "k8s"
           - name: GIT_API_URL
             value: "{{ .Values.sfgitops.gitapiurl }}" 
-          - name: BASE_REPO_NAME
-            value: "{{ .Values.sfgitops.basereponame }}" 
-          - name: BASE_GIT_REPO_URL
-            value: "{{ .Values.sfgitops.basegitrepourl }}"
-          - name: ENV_TYPE 
-            value: "{{ .Values.sfgitops.envtype }}"
+          - name: GIT_REPO_URL
+            value: "{{ .Values.sfgitops.gitrepourl }}"
           - name: INTERVAL
             value: "{{ .Values.sfgitops.interval }}"
           - name: USE_TAGS

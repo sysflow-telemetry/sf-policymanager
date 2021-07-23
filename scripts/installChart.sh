@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2021 IBM Corporation.
+# Copyright (C) 2019 IBM Corporation.
 #
 # Authors:
 # Frederico Araujo <frederico.araujo@ibm.com>
@@ -19,20 +19,16 @@
 # limitations under the License.
 
 
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 2 ]; then
     echo "Required arguments missing!"
-    echo "Usage : ./installChart <gitapiurl> <basereponame> <basegitrepourl> <envtype>"
+    echo "Usage : ./installChart <gitapiurl> <gitrepourl>"
     echo "<gitapiurl> github api url"
-    echo "<basereponame> name of the git repo, minus the environment type"
-    echo "<basegitrepourl> URL of the git repo, minus the environment type, and the .git suffix (please use https URL)"
-    echo "<envtype> Environment label for the deployment. This enables user to deploy different repos to different environments (e.g., dev, prd)"
+    echo "<gitrepourl> URL of the git repo (please use https URL and .git suffix)"
     exit 1
 fi
 
 gitapiurl=$1
-basereponame=$2
-basegitrepourl=$3
-envtype=$4
+gitrepourl=$2
 
 # Don't run if any of the prerequisites are not installed.
 prerequisites=( "kubectl" "helm" )
@@ -70,6 +66,6 @@ REALPATH=$(dirname $(realpath $0))
 cd $REALPATH/../charts
 
 helm install gitops ./sf-gitops-chart -f sf-gitops-chart/values.yaml --namespace sysflow \
-     --set sfgitops.gitapiurl=$gitapiurl --set sfgitops.basereponame=$basereponame \
-     --set sfgitops.basegitrepourl=$basegitrepourl --set sfgitops.envtype=$envtype \
+     --set sfgitops.gitapiurl=$gitapiurl \
+     --set sfgitops.gitrepourl=$gitrepourl \
      --debug
