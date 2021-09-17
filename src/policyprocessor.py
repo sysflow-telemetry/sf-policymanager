@@ -27,7 +27,6 @@ import logging
 import shutil
 from urllib.parse import urlparse
 from kubecontroller import KubeController
-import re
 
 
 urlRegex = re.compile(
