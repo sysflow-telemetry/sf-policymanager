@@ -13,9 +13,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-## [[UNRELEASED](https://github.com/sysflow-telemetry/sf-policymanager/compare/0.3.0-rc2...HEAD)]
+## [[UNRELEASED](https://github.com/sysflow-telemetry/sf-policymanager/compare/0.3.0...HEAD)]
 
-## [0.3.0-rc2] - 2021-07-23
+## [0.3.0] - 2021-09-20
 
 ### Added
 
