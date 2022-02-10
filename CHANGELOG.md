@@ -13,7 +13,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-## [[UNRELEASED](https://github.com/sysflow-telemetry/sf-policymanager/compare/0.3.0...HEAD)]
+## [Unreleased]
+
+## [0.4.0] - 2022-02-18
+
+## Changed
+
+- Update(ubi): Bumped UBI-minimal version to 8.5-230.
+
+## [0.3.1] - 2021-09-29
 
 ## Changed
 
@@ -24,3 +32,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - First release candidate.
+
+[Unreleased]: https://github.com/sysflow-telemetry/sf-processor/compare/0.4.0-rc1...HEAD
+[0.4.0]: https://github.com/sysflow-telemetry/sf-processor/compare/0.3.1...0.4.0-rc1
+[0.3.1]: https://github.com/sysflow-telemetry/sf-processor/compare/0.3.0...0.3.1
+[0.3.0]: https://github.com/sysflow-telemetry/sf-processor/releases/tag/0.3.0
