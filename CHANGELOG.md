@@ -17,15 +17,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [0.4.0] - 2022-02-18
 
-## Changed
+### Changed
 
-- Update(ubi): Bumped UBI-minimal version to 8.5-230.
+- Bumped UBI-minimal version to 8.5-230.
 
 ## [0.3.1] - 2021-09-29
 
-## Changed
+### Changed
 
-- Update(ubi): Bumped UBI-minimal version to 8.4-210.
+- Bumped UBI-minimal version to 8.4-210.
 
 ## [0.3.0] - 2021-09-20
 
