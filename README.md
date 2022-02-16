@@ -7,7 +7,7 @@
 
 # Supported tags and respective `Dockerfile` links
 
--	[`0.3.0`, `latest`](https://github.com/sysflow-telemetry/sf-policymanager/blob/0.3.0/Dockerfile), [`edge`](https://github.com/sysflow-telemetry/sf-policymanager/blob/master/Dockerfile), [`dev`](https://github.com/sysflow-telemetry/sf-policymanager/blob/dev/Dockerfile)
+-	[`0.4.0`, `latest`](https://github.com/sysflow-telemetry/sf-policymanager/blob/0.4.0-rc2/Dockerfile), [`edge`](https://github.com/sysflow-telemetry/sf-policymanager/blob/master/Dockerfile), [`dev`](https://github.com/sysflow-telemetry/sf-policymanager/blob/dev/Dockerfile)
 
 > Note: This is an experimental utility.
 
